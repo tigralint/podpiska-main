@@ -17,6 +17,7 @@ const NotFound = React.lazy(() => import('./views/NotFound'));
 
 import { LoadingSpinner } from './components/ui/LoadingSpinner';
 import { PwaPrompt } from './components/ui/PwaPrompt';
+import { CanvasBackground } from './components/ui/CanvasBackground';
 
 export default function App() {
   const location = useLocation();
@@ -30,14 +31,8 @@ export default function App() {
   }, [location.pathname]);
 
   return (
-    <div className="min-h-screen relative text-slate-100 overflow-x-hidden">
-      {/* VisionOS Animated Mesh Gradient Background (Optimized) */}
-      <div className="fixed inset-0 overflow-hidden pointer-events-none z-0 bg-app-bg contain-strict">
-        <div className="absolute top-[-20%] left-[-10%] w-[60vw] h-[60vw] rounded-full bg-[radial-gradient(circle,rgba(139,92,246,0.15)_0%,rgba(139,92,246,0)_70%)] animate-blob will-change-transform transform-gpu"></div>
-        <div className="absolute top-[20%] right-[-10%] w-[50vw] h-[50vw] rounded-full bg-[radial-gradient(circle,rgba(79,172,254,0.15)_0%,rgba(79,172,254,0)_70%)] animate-blob will-change-transform transform-gpu" style={{ animationDelay: '2s' }}></div>
-        <div className="absolute bottom-[-20%] left-[20%] w-[70vw] h-[70vw] rounded-full bg-[radial-gradient(circle,rgba(0,242,254,0.10)_0%,rgba(0,242,254,0)_70%)] animate-blob will-change-transform transform-gpu" style={{ animationDelay: '4s' }}></div>
-        <div className="absolute top-[40%] left-[50%] w-[40vw] h-[40vw] rounded-full bg-[radial-gradient(circle,rgba(236,72,153,0.10)_0%,rgba(236,72,153,0)_70%)] animate-blob will-change-transform transform-gpu" style={{ animationDelay: '6s' }}></div>
-      </div>
+    <div className="min-h-screen relative text-slate-100 overflow-x-hidden z-0">
+      <CanvasBackground />
 
       <AppHeader />
 

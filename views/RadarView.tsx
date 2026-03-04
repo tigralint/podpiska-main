@@ -2,7 +2,7 @@ import { useNavigate } from 'react-router-dom';
 import { ChevronLeft, MapPin, Radio, AlertCircle } from '../components/icons';
 import { ALERTS } from '../data/radar-alerts';
 import { SEO } from '../components/ui/SEO';
-
+import { RadarCanvas } from '../components/ui/RadarCanvas';
 
 export default function RadarView() {
   const navigate = useNavigate();
@@ -42,18 +42,10 @@ export default function RadarView() {
           <div className="lg:col-span-1 flex flex-col items-center justify-center p-8 real-glass-panel rounded-[3rem] relative overflow-hidden h-[400px] border border-accent-purple/20 opacity-0 animate-slide-up" style={{ animationDelay: '150ms' }}>
             <div className="absolute inset-0 bg-accent-purple/5"></div>
 
-            {/* Abstract Radar Circles */}
+            {/* Abstract Radar Canvas */}
             <div className="relative w-64 h-64 flex items-center justify-center">
-              <div className="absolute w-full h-full border border-accent-purple/20 rounded-full"></div>
-              <div className="absolute w-3/4 h-3/4 border border-accent-purple/30 rounded-full"></div>
-              <div className="absolute w-1/2 h-1/2 border border-accent-purple/40 rounded-full"></div>
-              <div className="absolute w-1/4 h-1/4 bg-accent-purple/20 rounded-full animate-ping"></div>
+              <RadarCanvas />
               <Radio className="w-8 h-8 text-accent-purple relative z-10" />
-
-              {/* Dots on radar */}
-              <div className="absolute top-1/4 left-1/4 w-3 h-3 bg-red-500 rounded-full animate-pulse transform-gpu"></div>
-              <div className="absolute bottom-1/3 right-1/4 w-2 h-2 bg-emerald-400 rounded-full animate-pulse transform-gpu" style={{ animationDelay: '1s' }}></div>
-              <div className="absolute top-1/2 right-1/4 w-2 h-2 bg-orange-400 rounded-full animate-pulse transform-gpu" style={{ animationDelay: '0.5s' }}></div>
             </div>
 
             <div className="mt-8 text-center relative z-10">
