@@ -15,6 +15,8 @@ const RadarView = React.lazy(() => import('./views/RadarView'));
 const FaqView = React.lazy(() => import('./views/FaqView'));
 const NotFound = React.lazy(() => import('./views/NotFound'));
 
+import { LoadingSpinner } from './components/ui/LoadingSpinner';
+
 export default function App() {
   const location = useLocation();
 
@@ -45,7 +47,7 @@ export default function App() {
         <div className="relative z-10 w-full max-w-6xl mx-auto min-h-screen pt-4 md:pt-32 pb-28 md:pb-24">
           {/* Key forces React to unmount and remount the view, ensuring entry animations play every time */}
           <div key={location.pathname} className="h-full w-full view-enter">
-            <Suspense fallback={<div>Loading...</div>}>
+            <Suspense fallback={<LoadingSpinner />}>
               <Routes>
                 <Route path="/" element={<Dashboard />} />
                 <Route path="/claim" element={<SubscriptionFlow />} />
