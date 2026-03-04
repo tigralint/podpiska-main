@@ -38,7 +38,7 @@ export default function Dashboard() {
       <div className="relative z-20 w-full text-center md:text-left md:flex justify-between items-center mb-16 mt-8 md:mt-0 opacity-0 animate-slide-up" style={{ animationDelay: '50ms' }}>
         <div className="max-w-3xl">
           <div className="md:hidden inline-flex items-center justify-center w-16 h-10 rounded-full real-glass mb-6 px-1.5 border border-white/10 shadow-[inset_0_1px_1px_rgba(255,255,255,0.1)]">
-            <div className="w-6 h-6 rounded-full bg-gradient-to-br from-accent-cyan to-accent-blue shadow-[0_0_15px_rgba(0,242,254,0.6)] animate-pulse-slow"></div>
+            <div className="w-6 h-6 rounded-full bg-gradient-to-br from-accent-cyan to-accent-blue animate-pulse-slow transform-gpu"></div>
           </div>
           <h1 className="text-4xl md:text-6xl font-extrabold tracking-tight mb-6 leading-[1.1]">
             {APP_CONTENT.hero.titlePrefix}<br />

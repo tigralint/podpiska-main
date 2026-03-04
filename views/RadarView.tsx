@@ -51,9 +51,9 @@ export default function RadarView() {
               <Radio className="w-8 h-8 text-accent-purple relative z-10" />
 
               {/* Dots on radar */}
-              <div className="absolute top-1/4 left-1/4 w-3 h-3 bg-red-500 rounded-full animate-pulse shadow-[0_0_10px_red]"></div>
-              <div className="absolute bottom-1/3 right-1/4 w-2 h-2 bg-emerald-400 rounded-full animate-pulse shadow-[0_0_10px_#34d399]" style={{ animationDelay: '1s' }}></div>
-              <div className="absolute top-1/2 right-1/4 w-2 h-2 bg-orange-400 rounded-full animate-pulse shadow-[0_0_10px_orange]" style={{ animationDelay: '0.5s' }}></div>
+              <div className="absolute top-1/4 left-1/4 w-3 h-3 bg-red-500 rounded-full animate-pulse transform-gpu"></div>
+              <div className="absolute bottom-1/3 right-1/4 w-2 h-2 bg-emerald-400 rounded-full animate-pulse transform-gpu" style={{ animationDelay: '1s' }}></div>
+              <div className="absolute top-1/2 right-1/4 w-2 h-2 bg-orange-400 rounded-full animate-pulse transform-gpu" style={{ animationDelay: '0.5s' }}></div>
             </div>
 
             <div className="mt-8 text-center relative z-10">
@@ -100,7 +100,7 @@ export default function RadarView() {
                   </div>
 
                   <div className="flex items-start gap-4">
-                    {alert.severity === 'critical' && <AlertCircle className="w-6 h-6 shrink-0 mt-0.5 text-red-400 animate-pulse" />}
+                    {alert.severity === 'critical' && <AlertCircle className="w-6 h-6 shrink-0 mt-0.5 text-red-400 animate-pulse transform-gpu" />}
                     <p className="text-slate-300 text-[15px] leading-relaxed">
                       {alert.text}
                     </p>
