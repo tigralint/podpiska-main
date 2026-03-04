@@ -15,6 +15,17 @@ export default function GuidesView() {
       setSelectedGuideId(id);
     }
   }, [id]);
+
+  // Scroll to top and lock body scroll when guide modal opens
+  useEffect(() => {
+    if (!selectedGuideId) {
+      document.body.style.overflow = '';
+      return;
+    }
+    window.scrollTo({ top: 0 });
+    document.body.style.overflow = 'hidden';
+    return () => { document.body.style.overflow = ''; };
+  }, [selectedGuideId]);
   const [showModal, setShowModal] = useState(false);
   const [modalState, setModalState] = useState<'form' | 'success'>('form');
 
