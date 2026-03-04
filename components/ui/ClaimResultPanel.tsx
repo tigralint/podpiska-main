@@ -56,26 +56,42 @@ export const ClaimResultPanel = React.memo(function ClaimResultPanel({
     loadingSubtitle
 }: ClaimResultPanelProps) {
     const themeStyles = RESULT_THEMES[theme];
+    const panelRef = React.useRef<HTMLDivElement>(null);
+
+    React.useEffect(() => {
+        // Scroll into view on mobile/tablet when generation starts or result appears
+        if (isGenerating || result) {
+            // Small delay to ensure render is complete
+            const timeoutId = setTimeout(() => {
+                panelRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            }, 100);
+            return () => clearTimeout(timeoutId);
+        }
+    }, [isGenerating, result]);
 
     if (isGenerating) {
         return (
-            <GeneratingState
-                theme={theme}
-                loadingTitle={loadingTitle}
-                loadingSubtitle={loadingSubtitle}
-            />
+            <div ref={panelRef} className="w-full h-full flex flex-col">
+                <GeneratingState
+                    theme={theme}
+                    loadingTitle={loadingTitle}
+                    loadingSubtitle={loadingSubtitle}
+                />
+            </div>
         );
     }
 
     if (result) {
         return (
-            <ResultSuccessCard
-                result={result}
-                theme={theme}
-                onCopy={onCopy}
-                copied={copied}
-                onDownload={onDownload}
-            />
+            <div ref={panelRef} className="w-full h-full flex flex-col">
+                <ResultSuccessCard
+                    result={result}
+                    theme={theme}
+                    onCopy={onCopy}
+                    copied={copied}
+                    onDownload={onDownload}
+                />
+            </div>
         );
     }
 
