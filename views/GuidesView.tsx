@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import { useNavigate, useParams } from 'react-router-dom';
 import { ChevronLeft, Plus, X, CheckCircle, FileText, ExternalLink } from '../components/icons';
 import { GUIDES_DB } from '../data/guides';
@@ -112,7 +113,7 @@ export default function GuidesView() {
         </div>
 
         {/* --- GUIDE DETAILS MODAL (full-screen on mobile, centered on desktop) --- */}
-        {selectedGuide && (
+        {selectedGuide && createPortal(
           <div className="fixed inset-0 z-[150] flex items-end md:items-center justify-center md:p-6 overflow-hidden">
             {/* Backdrop */}
             <div
@@ -205,10 +206,10 @@ export default function GuidesView() {
 
             </div>
           </div>
-        )}
+          , document.body)}
 
         {/* Global Modal Overlay (For New Pattern Form) */}
-        {showModal && (
+        {showModal && createPortal(
           <div className="fixed inset-0 z-[200] flex items-center justify-center px-4 animate-fade-in">
             <div className="absolute inset-0 bg-app-bg/30 backdrop-blur-xl" onClick={() => setShowModal(false)}></div>
 
@@ -267,7 +268,7 @@ export default function GuidesView() {
               )}
             </div>
           </div>
-        )}
+          , document.body)}
 
       </div>
     </div>
