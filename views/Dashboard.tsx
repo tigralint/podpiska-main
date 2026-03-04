@@ -47,7 +47,7 @@ export default function Dashboard() {
           </p>
 
           {/* Search Bar */}
-          <div className="relative group max-w-2xl">
+          <div className="relative group max-w-2xl z-50">
             <SearchInput
               value={searchQuery}
               onChange={setSearchQuery}
