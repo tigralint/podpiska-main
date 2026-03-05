@@ -17,6 +17,9 @@ export function CanvasBackground() {
 
         let rafId: number;
         let isRunning = true;
+        let lastRenderTime = performance.now();
+        const TARGET_FPS = 15;
+        const FRAME_TIME = 1000 / TARGET_FPS;
 
         // Fluid blobs configuration
         const blobs = [
@@ -34,8 +37,12 @@ export function CanvasBackground() {
             canvas.height = window.innerHeight;
         };
 
-        const render = () => {
+        const render = (time: number) => {
             if (!isRunning) return;
+            rafId = requestAnimationFrame(render);
+
+            if (time - lastRenderTime < FRAME_TIME) return;
+            lastRenderTime = time;
 
             const w = canvas.width;
             const h = canvas.height;
@@ -73,8 +80,6 @@ export function CanvasBackground() {
                 ctx.fill();
                 ctx.globalCompositeOperation = 'source-over'; // reset
             }
-
-            rafId = requestAnimationFrame(render);
         };
 
         // Performance Optimization: Pause animation when tab is not visible
@@ -84,7 +89,7 @@ export function CanvasBackground() {
                 cancelAnimationFrame(rafId);
             } else {
                 isRunning = true;
-                render(); // restart loop
+                render(performance.now()); // restart loop
             }
         };
 
@@ -93,7 +98,7 @@ export function CanvasBackground() {
 
         // Init
         resize();
-        render();
+        render(performance.now());
 
         return () => {
             isRunning = false;

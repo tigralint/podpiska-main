@@ -13,7 +13,10 @@ export function RadarCanvas() {
 
         let rafId: number;
         let isRunning = true;
-        let time = 0;
+        let timeGlobal = 0;
+        let lastRenderTime = performance.now();
+        const TARGET_FPS = 20;
+        const FRAME_TIME = 1000 / TARGET_FPS;
 
         // Setup high-dpi canvas
         const resize = () => {
@@ -39,9 +42,14 @@ export function RadarCanvas() {
             { cx: 0.75, cy: 0.50, r: 4, baser: 4, color: '251, 146, 60', phase: Math.PI / 2 }, // Orange
         ];
 
-        const render = () => {
+        const render = (time: number) => {
             if (!isRunning) return;
-            time += 0.016; // Approx 60fps step
+            rafId = requestAnimationFrame(render);
+
+            if (time - lastRenderTime < FRAME_TIME) return;
+            lastRenderTime = time;
+
+            timeGlobal += 0.05; // Approx step for 20fps
 
             // We use rect from style width/height because we scaled ctx
             const w = parseInt(canvas.style.width || '0');
@@ -65,7 +73,7 @@ export function RadarCanvas() {
             ctx.beginPath(); ctx.arc(cx, cy, maxR * 0.5, 0, Math.PI * 2); ctx.stroke();
 
             // 2. Draw animated pinging inner ring
-            const pingProgress = (time % 2) / 2; // loops every 2 seconds
+            const pingProgress = (timeGlobal % 2) / 2; // loops every 2 seconds
             const pingR = (maxR * 0.25) + (pingProgress * maxR * 0.25);
             const pingAlpha = Math.max(0, 1 - (pingProgress * 2));
 
@@ -77,7 +85,7 @@ export function RadarCanvas() {
             // 3. Draw pulsing alert dots
             for (const alert of alerts) {
                 // Sine wave for pulsing size / opacity
-                const pulse = (Math.sin(time * 3 + alert.phase) + 1) / 2; // 0 to 1
+                const pulse = (Math.sin(timeGlobal * 3 + alert.phase) + 1) / 2; // 0 to 1
 
                 const px = alert.cx * w;
                 const py = alert.cy * h;
@@ -94,8 +102,6 @@ export function RadarCanvas() {
                 ctx.arc(px, py, alert.baser, 0, Math.PI * 2);
                 ctx.fill();
             }
-
-            rafId = requestAnimationFrame(render);
         };
 
         const handleVisibility = () => {
@@ -104,7 +110,7 @@ export function RadarCanvas() {
                 cancelAnimationFrame(rafId);
             } else {
                 isRunning = true;
-                render();
+                render(performance.now());
             }
         };
 
@@ -115,7 +121,7 @@ export function RadarCanvas() {
         document.addEventListener('visibilitychange', handleVisibility);
 
         resize();
-        render();
+        render(performance.now());
 
         return () => {
             isRunning = false;

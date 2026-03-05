@@ -128,7 +128,7 @@ export const ClaimResultPanel = React.memo(function ClaimResultPanel({
             </div>
 
             <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-                <div className={`bg-app-bg/80 backdrop-blur-sm py-3 px-6 rounded-full border ${themeStyles.border} shadow-xl flex items-center gap-3 animate-float`}>
+                <div className={`bg-[#05050A]/95 py-3 px-6 rounded-full border ${themeStyles.border} shadow-xl flex items-center gap-3 animate-float`}>
                     <FileText className={`w-5 h-5 ${themeStyles.text}`} />
                     <span className="font-bold text-white tracking-wide">Окно предпросмотра</span>
                 </div>

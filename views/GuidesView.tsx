@@ -117,7 +117,7 @@ export default function GuidesView() {
           <div className="fixed inset-0 z-[150] flex items-end md:items-center justify-center md:p-6 overflow-hidden">
             {/* Backdrop */}
             <div
-              className="absolute inset-0 bg-app-bg/30 backdrop-blur-xl animate-fade-in transition-opacity"
+              className="absolute inset-0 bg-[#05050A]/95 animate-fade-in transition-opacity"
               onClick={() => setSelectedGuideId(null)}
             ></div>
 
@@ -125,7 +125,7 @@ export default function GuidesView() {
             <div className="relative w-full max-w-2xl bg-[#0a0f1c] border border-white/10 rounded-t-[2rem] md:rounded-[2.5rem] shadow-[0_20px_60px_rgba(0,0,0,0.6)] animate-pop-in flex flex-col max-h-[95vh] md:max-h-[90vh] overflow-hidden">
 
               {/* Header */}
-              <div className="p-5 md:p-8 flex items-center justify-between border-b border-white/5 shrink-0 bg-[#0a0f1c]/80 backdrop-blur-md z-10">
+              <div className="p-5 md:p-8 flex items-center justify-between border-b border-white/5 shrink-0 bg-[#0a0f1c]/95 z-10">
                 <div className="flex items-center gap-4">
                   <div className={`w-10 h-10 md:w-12 md:h-12 rounded-xl md:rounded-2xl flex items-center justify-center text-lg md:text-xl font-black shrink-0 ${selectedGuide.iconColor} bg-opacity-20 border border-white/10 shadow-[inset_0_1px_1px_rgba(255,255,255,0.2)]`}>
                     <span className="drop-shadow-md text-white">{selectedGuide.service.charAt(0)}</span>
@@ -211,7 +211,7 @@ export default function GuidesView() {
         {/* Global Modal Overlay (For New Pattern Form) */}
         {showModal && createPortal(
           <div className="fixed inset-0 z-[200] flex items-center justify-center px-4 animate-fade-in">
-            <div className="absolute inset-0 bg-app-bg/30 backdrop-blur-xl" onClick={() => setShowModal(false)}></div>
+            <div className="absolute inset-0 bg-[#05050A]/95" onClick={() => setShowModal(false)}></div>
 
             <div className="w-full max-w-md real-glass-panel rounded-[2.5rem] p-8 relative z-10 border border-white/20 shadow-2xl animate-pop-in">
               <button

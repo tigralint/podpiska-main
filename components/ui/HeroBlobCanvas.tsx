@@ -12,7 +12,10 @@ export function HeroBlobCanvas() {
 
         let rafId: number;
         let isRunning = true;
-        let time = 0;
+        let timeGlobal = 0;
+        let lastRenderTime = performance.now();
+        const TARGET_FPS = 15;
+        const FRAME_TIME = 1000 / TARGET_FPS;
 
         const resize = () => {
             // Small 64x64 canvas upscaled by CSS is extremely cheap
@@ -20,9 +23,14 @@ export function HeroBlobCanvas() {
             canvas.height = 64;
         };
 
-        const render = () => {
+        const render = (time: number) => {
             if (!isRunning) return;
-            time += 0.02;
+            rafId = requestAnimationFrame(render);
+
+            if (time - lastRenderTime < FRAME_TIME) return;
+            lastRenderTime = time;
+
+            timeGlobal += 0.06; // Compensate for slower frame rate (was 0.02 * ~3)
 
             const w = canvas.width;
             const h = canvas.height;
@@ -32,11 +40,11 @@ export function HeroBlobCanvas() {
             ctx.clearRect(0, 0, w, h);
 
             // Create a fluid breathing gradient
-            const radius = 20 + Math.sin(time) * 4; // Breathes 16px to 24px
+            const radius = 20 + Math.sin(timeGlobal) * 4; // Breathes 16px to 24px
 
             const gradient = ctx.createRadialGradient(
-                cx + Math.cos(time * 0.8) * 8, // slight orbit
-                cy + Math.sin(time * 0.7) * 8,
+                cx + Math.cos(timeGlobal * 0.8) * 8, // slight orbit
+                cy + Math.sin(timeGlobal * 0.7) * 8,
                 0,
                 cx,
                 cy,
@@ -57,7 +65,7 @@ export function HeroBlobCanvas() {
             for (let i = 0; i <= points; i++) {
                 const theta = i * step;
                 // Perturb radius by sine waves based on angle and time
-                const r = radius + Math.sin(theta * 3 + time) * 3 + Math.cos(theta * 2 - time * 1.5) * 2;
+                const r = radius + Math.sin(theta * 3 + timeGlobal) * 3 + Math.cos(theta * 2 - timeGlobal * 1.5) * 2;
 
                 const px = cx + Math.cos(theta) * r;
                 const py = cy + Math.sin(theta) * r;
@@ -71,8 +79,6 @@ export function HeroBlobCanvas() {
 
             ctx.closePath();
             ctx.fill();
-
-            rafId = requestAnimationFrame(render);
         };
 
         const handleVisibility = () => {
@@ -81,14 +87,14 @@ export function HeroBlobCanvas() {
                 cancelAnimationFrame(rafId);
             } else {
                 isRunning = true;
-                render();
+                render(performance.now());
             }
         };
 
         document.addEventListener('visibilitychange', handleVisibility);
 
         resize();
-        render();
+        render(performance.now());
 
         return () => {
             isRunning = false;
