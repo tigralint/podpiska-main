@@ -144,7 +144,7 @@ export default async function handler(
                 "Content-Type": "application/json"
             },
             body: JSON.stringify({
-                "model": "qwen/qwen3-vl-30b-a3b-thinking",
+                "model": "arcee-ai/trinity-large-preview:free",
                 "messages": [{ "role": "user", "content": prompt }],
                 "temperature": 0.1,
             })
@@ -154,7 +154,11 @@ export default async function handler(
         const text = aiJson.choices?.[0]?.message?.content;
 
         if (!text) {
-            return response.status(502).json({ error: 'ИИ-модель не вернула результат. Попробуйте повторить запрос.' });
+            console.error('OpenRouter Error:', JSON.stringify(aiJson));
+            const aiErr = aiJson.error?.message || 'ИИ-модель не вернула результат';
+            // Return 422 instead of 502 so the client doesn't retry the request
+            // (retrying fails anyway because the Turnstile token is already consumed)
+            return response.status(422).json({ error: `Ошибка API ИИ: ${aiErr}` });
         }
 
         return response.status(200).json({ text });
