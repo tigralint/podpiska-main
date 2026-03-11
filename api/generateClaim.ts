@@ -1,4 +1,5 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
+import { buildSubscriptionPrompt, buildCoursePrompt } from './promptBuilder';
 
 interface TurnstileVerifyResponse {
     success: boolean;
@@ -8,6 +9,29 @@ interface TurnstileVerifyResponse {
 interface OpenRouterResponse {
     choices?: { message?: { content?: string } }[];
     error?: { message?: string };
+}
+
+// --- Runtime Type Guards for request body validation ---
+function isValidClaimData(d: unknown): d is { serviceName: string; amount: string; date: string; reason: string; tone: 'soft' | 'hard'; turnstileToken?: string } {
+    if (typeof d !== 'object' || !d) return false;
+    const obj = d as Record<string, unknown>;
+    return typeof obj.serviceName === 'string' && obj.serviceName.trim().length > 0
+        && typeof obj.amount === 'string'
+        && typeof obj.date === 'string'
+        && typeof obj.reason === 'string'
+        && (obj.tone === 'soft' || obj.tone === 'hard');
+}
+
+function isValidCourseData(d: unknown): d is { courseName: string; totalCost: number; percentCompleted: number; tone: 'soft' | 'hard'; hasPlatformAccess: boolean; hasConsultations: boolean; hasCertificate: boolean; turnstileToken?: string } {
+    if (typeof d !== 'object' || !d) return false;
+    const obj = d as Record<string, unknown>;
+    return typeof obj.courseName === 'string' && obj.courseName.trim().length > 0
+        && typeof obj.totalCost === 'number' && obj.totalCost > 0
+        && typeof obj.percentCompleted === 'number'
+        && (obj.tone === 'soft' || obj.tone === 'hard')
+        && typeof obj.hasPlatformAccess === 'boolean'
+        && typeof obj.hasConsultations === 'boolean'
+        && typeof obj.hasCertificate === 'boolean';
 }
 
 /**
@@ -22,31 +46,10 @@ function sanitizeInput(input: string, maxLength = 200): string {
         .trim();
 }
 
-// --- In-memory Rate Limiter (60 req/hour per IP) ---
-const RATE_LIMIT = 60;
-const RATE_WINDOW_MS = 60 * 60 * 1000; // 1 hour
-const rateLimitMap = new Map<string, { count: number; resetAt: number }>();
+import { RateLimiter } from './rateLimiter';
 
-// Cleanup stale entries every 10 minutes to prevent memory leaks
-setInterval(() => {
-    const now = Date.now();
-    for (const [ip, entry] of rateLimitMap) {
-        if (now > entry.resetAt) rateLimitMap.delete(ip);
-    }
-}, 10 * 60 * 1000);
-
-function isRateLimited(ip: string): boolean {
-    const now = Date.now();
-    const entry = rateLimitMap.get(ip);
-
-    if (!entry || now > entry.resetAt) {
-        rateLimitMap.set(ip, { count: 1, resetAt: now + RATE_WINDOW_MS });
-        return false;
-    }
-
-    entry.count++;
-    return entry.count > RATE_LIMIT;
-}
+// --- Rate Limiter (60 req/hour per IP) ---
+const limiter = new RateLimiter(60, 60 * 60 * 1000);
 
 export default async function handler(
     request: VercelRequest,
@@ -56,11 +59,14 @@ export default async function handler(
         return response.status(405).json({ error: 'Method Not Allowed' });
     }
 
-    // Rate limiting: 60 requests per hour per IP
+    // Rate limiting
     const clientIp = (request.headers['x-forwarded-for'] as string)?.split(',')[0]?.trim()
         ?? request.socket?.remoteAddress
         ?? 'unknown';
-    if (isRateLimited(clientIp)) {
+
+    limiter.cleanup(); // Remove expired entries periodically
+
+    if (limiter.isLimited(clientIp)) {
         return response.status(429).json({ error: 'Слишком много запросов. Попробуйте через некоторое время.' });
     }
 
@@ -81,6 +87,19 @@ export default async function handler(
         // Validate request type
         if (type !== 'subscription' && type !== 'course') {
             return response.status(400).json({ error: 'Неизвестный тип документа.' });
+        }
+
+        // Runtime validation of request body
+        if (type === 'subscription' && !isValidClaimData(data)) {
+            return response.status(400).json({ error: 'Некорректные данные подписки. Проверьте заполнение всех полей.' });
+        }
+        if (type === 'course') {
+            if (!isValidCourseData(data)) {
+                return response.status(400).json({ error: 'Некорректные данные курса. Проверьте заполнение всех полей.' });
+            }
+            if (typeof calculatedRefund !== 'number' || calculatedRefund < 0) {
+                return response.status(400).json({ error: 'Некорректная сумма возврата.' });
+            }
         }
 
         if (!data || !data.turnstileToken) {
@@ -109,63 +128,13 @@ export default async function handler(
             const amount = sanitizeInput(String(data.amount), 20);
             const date = sanitizeInput(String(data.date), 20);
             const reason = sanitizeInput(data.reason);
-            const tonePart = data.tone === 'hard'
-                ? 'Тон: Ультимативный. Упомяни Роспотребнадзор и суд.'
-                : 'Тон: Вежливый и лояльный. Напиши, что я ценю сервис, но прошу возврат.';
-
-            prompt = `Составь развернутый текст заявления о возврате средств.
-ДАННЫЕ:
-- СЕРВИС: ${serviceName}
-- СУММА: ${amount} руб.
-- ДАТА: ${date}
-- ПРИЧИНА: ${reason}
-
-ИНСТРУКЦИЯ (СТРОГО):
-1. Обязательно назови сервис "${serviceName}" по имени в тексте.
-2. Ссылка на ст. 32 ЗоЗПП и ст. 782 ГК РФ.
-3. Срок возврата — 10 дней (ст. 31 ЗоЗПП).
-4. ${tonePart}
-5. Используй формы: «пользовался(-ась)», «подписался(-ась)», «отменил(а)».
-6. Текст должен содержать 4-5 отдельных абзацев (БЕЗ заголовков «Вступление», «Факты» и т.д. — просто сплошные абзацы текста):
-   - Кто я, когда и на что подписался.
-   - Что произошло, почему хочу вернуть деньги, подробности ситуации.
-   - Ссылки на конкретные статьи закона и их суть.
-   - Чётко сформулировать, чего именно требую (возврат суммы, сроки).
-   - Предупреждение о последствиях или вежливое завершение.
-7. Каждый абзац — не менее 2-3 предложений. Общий объём — минимум 200 слов.
-8. НЕ ВЫДУМЫВАЙ данные (ИНН, расчётные счета, БИК, номера договоров). Вместо них ставь плейсхолдеры: [ВАШИ РЕКВИЗИТЫ], [ФИО], [№ ДОГОВОРА].
-
-ФОРМАТ: ТОЛЬКО основной текст заявления. Без шапок, заголовков и подписей. Чистый текст. Абзацы разделяй пустой строкой.`;
+            prompt = buildSubscriptionPrompt(serviceName, amount, date, reason, data.tone);
         } else {
             const courseName = sanitizeInput(data.courseName);
             const totalCost = sanitizeInput(String(data.totalCost), 20);
             const percentCompleted = sanitizeInput(String(data.percentCompleted), 5);
             const refund = sanitizeInput(String(calculatedRefund), 20);
-            const tonePart = data.tone === 'hard' ? 'Тон: Жесткий.' : 'Тон: Конструктивный.';
-
-            prompt = `Составь развернутый текст расторжения договора с онлайн-школой.
-ДАННЫЕ:
-- ШКОЛА: ${courseName}
-- ОБЩАЯ ЦЕНА: ${totalCost} руб.
-- ПРОЙДЕНО: ${percentCompleted}%
-- СУММА К ВОЗВРАТУ: ${refund} руб.
-
-ИНСТРУКЦИЯ (СТРОГО):
-1. Обязательно назови школу "${courseName}" по имени в тексте.
-2. Ссылка на ст. 32 ЗоЗПП.
-3. Требуй возврата суммы ${refund} руб.
-4. ${tonePart}
-5. Используй формы: «приобрел(а)», «изучил(а)», «решил(а)».
-6. Текст должен содержать 4-5 отдельных абзацев (БЕЗ заголовков «Вступление», «Факты» и т.д. — просто сплошные абзацы текста):
-   - Когда и какой договор был заключён, стоимость обучения.
-   - Сколько пройдено, почему решил(а) расторгнуть, конкретные претензии к качеству или формату.
-   - Ссылки на ст. 32 ЗоЗПП, расчёт суммы к возврату.
-   - Точная сумма возврата ${refund} руб., срок 10 дней.
-   - Предупреждение о последствиях или вежливое завершение.
-7. Каждый абзац — не менее 2-3 предложений. Общий объём — минимум 200 слов.
-8. НЕ ВЫДУМЫВАЙ данные (ИНН, расчётные счета, БИК, номера договоров). Вместо них ставь плейсхолдеры: [ВАШИ РЕКВИЗИТЫ], [ФИО], [№ ДОГОВОРА].
-
-ФОРМАТ: ТОЛЬКО тело текста. Без приветствий, шапок и заголовков. Чистый текст. Абзацы разделяй пустой строкой.`;
+            prompt = buildCoursePrompt(courseName, totalCost, percentCompleted, refund, data.tone);
         }
 
         const aiResponse = await fetch("https://openrouter.ai/api/v1/chat/completions", {
@@ -191,7 +160,14 @@ export default async function handler(
         return response.status(200).json({ text });
 
     } catch (error: unknown) {
-        console.error('generateClaim error:', error);
+        console.error(JSON.stringify({
+            event: 'generateClaim_error',
+            type: request.body?.type,
+            ip: clientIp,
+            error: error instanceof Error ? error.message : String(error),
+            stack: error instanceof Error ? error.stack : undefined,
+            timestamp: new Date().toISOString(),
+        }));
         return response.status(500).json({ error: 'Внутренняя ошибка сервера. Попробуйте позже.' });
     }
 }

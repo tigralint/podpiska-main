@@ -18,9 +18,12 @@ const NotFound = React.lazy(() => import('./views/NotFound'));
 import { LoadingSpinner } from './components/ui/LoadingSpinner';
 import { PwaPrompt } from './components/ui/PwaPrompt';
 import { CanvasBackground } from './components/ui/CanvasBackground';
+import { ToastContainer } from './components/ui/ToastContainer';
+import { useAppContext } from './context/AppContext';
 
 export default function App() {
   const location = useLocation();
+  const { toasts, removeToast } = useAppContext();
 
   // Dynamic page title
   usePageTitle(location.pathname);
@@ -41,6 +44,9 @@ export default function App() {
 
       {/* PWA Update Prompt */}
       <PwaPrompt />
+
+      {/* Global Toast Notifications */}
+      <ToastContainer toasts={toasts} onRemove={removeToast} />
 
       <ErrorBoundary>
         <div id="main" role="main" className="relative z-10 w-full max-w-6xl mx-auto min-h-screen pt-4 md:pt-32 pb-28 md:pb-24">

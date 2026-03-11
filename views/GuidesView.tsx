@@ -1,9 +1,10 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { createPortal } from 'react-dom';
 import { useNavigate, useParams } from 'react-router-dom';
 import { ChevronLeft, Plus, X, CheckCircle, FileText, ExternalLink } from '../components/icons';
 import { GUIDES_DB } from '../data/guides';
 import { SEO } from '../components/ui/SEO';
+import { useFocusTrap } from '../hooks/useFocusTrap';
 
 export default function GuidesView() {
   const navigate = useNavigate();
@@ -30,15 +31,19 @@ export default function GuidesView() {
   const [showModal, setShowModal] = useState(false);
   const [modalState, setModalState] = useState<'form' | 'success'>('form');
 
-  // Close modal on Escape key
-  useEffect(() => {
-    if (!showModal) return;
-    const onKeyDown = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') setShowModal(false);
-    };
-    document.addEventListener('keydown', onKeyDown);
-    return () => document.removeEventListener('keydown', onKeyDown);
-  }, [showModal]);
+  // Focus trap refs
+  const guideModalRef = useRef<HTMLDivElement>(null);
+  const formModalRef = useRef<HTMLDivElement>(null);
+
+  const closeGuide = useCallback(() => {
+    setSelectedGuideId(null);
+    navigate('/guides', { replace: true });
+  }, [navigate]);
+
+  const closeForm = useCallback(() => setShowModal(false), []);
+
+  useFocusTrap(guideModalRef, !!selectedGuideId, closeGuide);
+  useFocusTrap(formModalRef, showModal, closeForm);
 
   const handleSubmitPattern = (e: React.FormEvent) => {
     e.preventDefault();
@@ -122,7 +127,7 @@ export default function GuidesView() {
             ></div>
 
             {/* Modal Panel — full height on mobile, max-h on desktop */}
-            <div className="relative w-full max-w-2xl bg-[#0a0f1c] border border-white/10 rounded-t-[2rem] md:rounded-[2.5rem] shadow-[0_20px_60px_rgba(0,0,0,0.6)] animate-pop-in flex flex-col max-h-[95vh] md:max-h-[90vh] overflow-hidden">
+            <div ref={guideModalRef} className="relative w-full max-w-2xl bg-[#0a0f1c] border border-white/10 rounded-t-[2rem] md:rounded-[2.5rem] shadow-[0_20px_60px_rgba(0,0,0,0.6)] animate-pop-in flex flex-col max-h-[95vh] md:max-h-[90vh] overflow-hidden">
 
               {/* Header */}
               <div className="p-5 md:p-8 flex items-center justify-between border-b border-white/5 shrink-0 bg-[#0a0f1c]/95 z-10">
@@ -213,7 +218,7 @@ export default function GuidesView() {
           <div className="fixed inset-0 z-[200] flex items-center justify-center px-4 animate-fade-in">
             <div className="absolute inset-0 bg-[#05050A]/95" onClick={() => setShowModal(false)}></div>
 
-            <div className="w-full max-w-md real-glass-panel rounded-[2.5rem] p-8 relative z-10 border border-white/20 shadow-2xl animate-pop-in">
+            <div ref={formModalRef} className="w-full max-w-md real-glass-panel rounded-[2.5rem] p-8 relative z-10 border border-white/20 shadow-2xl animate-pop-in">
               <button
                 onClick={() => setShowModal(false)}
                 className="absolute top-6 right-6 p-2 bg-white/5 hover:bg-white/10 rounded-full transition-colors"
