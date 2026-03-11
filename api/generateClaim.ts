@@ -1,5 +1,5 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
-import { buildSubscriptionPrompt, buildCoursePrompt } from './promptBuilder';
+import { buildSubscriptionPrompt, buildCoursePrompt } from './promptBuilder.js';
 
 interface TurnstileVerifyResponse {
     success: boolean;
@@ -46,7 +46,7 @@ function sanitizeInput(input: string, maxLength = 200): string {
         .trim();
 }
 
-import { RateLimiter } from './rateLimiter';
+import { RateLimiter } from './rateLimiter.js';
 
 // --- Rate Limiter (60 req/hour per IP) ---
 const limiter = new RateLimiter(60, 60 * 60 * 1000);
