@@ -35,7 +35,7 @@
     "@types/react": "^19.2.14",
     "@types/react-dom": "^19.2.3",
     "@types/remove-markdown": "^0.3.4",
-    "@vercel/node": "^5.6.10",
+    "@vercel/node": "^5.6.15",
     "@vitejs/plugin-react": "^5.0.0",
     "@vitest/coverage-v8": "^4.0.18",
     "autoprefixer": "^10.4.20",
