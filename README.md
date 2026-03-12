@@ -115,3 +115,7 @@ npm test
 
 - ВКонтакте: [vk.com/fairsubs](https://vk.com/fairsubs)  
 - Telegram: [@tigralint](https://t.me/tigralint)
+
+## Лицензия
+
+Этот проект распространяется под лицензией [MIT](LICENSE).
