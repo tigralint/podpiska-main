@@ -60,6 +60,7 @@
 Структура проекта организована для максимальной масштабируемости:
 
 ```text
+├── .github/        # Стандарты сообщества (CoC, Security, Contributing)
 ├── views/          # Страницы (Dashboard, SubscriptionFlow, CourseFlow, и др.)
 ├── components/ui/  # Переиспользуемые элементы (ToneToggle, FeatureCard, ToastContainer)
 ├── hooks/          # Бизнес-логика (useClaimForm, useClaimFlow, useFocusTrap)
@@ -93,7 +94,7 @@
 
 1. **Клонируйте репозиторий и установите зависимости:**
    ```bash
-   git clone https://github.com/your-username/podpiska.git
+   git clone https://github.com/tigralint/chestnayapodpiska.git
    cd podpiska
    npm install
    ```
