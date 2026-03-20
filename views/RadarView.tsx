@@ -41,9 +41,9 @@ export default function RadarView() {
            setShowModal(false);
            setTimeout(() => setModalState('form'), 500);
        }, 2000);
-    } catch(err) {
+    } catch(err: any) {
        console.error(err);
-       alert("Ошибка отправки.");
+       alert(err.message === 'Server error' ? "Ошибка отправки." : err.message);
     } finally {
        setIsSubmitting(false);
        turnstileRef.current?.reset?.();

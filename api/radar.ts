@@ -104,7 +104,10 @@ export default async function handler(request: VercelRequest, response: VercelRe
 
         try {
             const parsed = radarReportSchema.safeParse(request.body);
-            if (!parsed.success) return response.status(400).json({ error: 'Invalid data' });
+            if (!parsed.success) {
+                const firstError = parsed.error.issues[0]?.message || 'Invalid data';
+                return response.status(400).json({ error: firstError });
+            }
             
             const data = parsed.data;
 

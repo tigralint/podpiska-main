@@ -19,7 +19,10 @@ export const RadarService = {
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(data)
         });
-        if (!res.ok) throw new Error('Не удалось отправить жалобу');
+        if (!res.ok) {
+            const errData = await res.json().catch(() => ({}));
+            throw new Error(errData.error || 'Server error');
+        }
         return res.json();
     }
 };
