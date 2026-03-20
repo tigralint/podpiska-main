@@ -65,7 +65,8 @@ export default async function handler(
     try {
         const parsed = reportSchema.safeParse(request.body);
         if (!parsed.success) {
-            return response.status(400).json({ error: 'Некорректные данные. Проверьте заполнение всех полей.' });
+            const firstError = parsed.error.issues[0]?.message || 'Некорректные данные. Проверьте заполнение полей.';
+            return response.status(400).json({ error: firstError });
         }
         const validData = parsed.data;
 

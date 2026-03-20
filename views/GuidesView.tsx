@@ -74,7 +74,8 @@ export default function GuidesView() {
       });
       
       if (!res.ok) {
-        throw new Error('Server error');
+        const errorData = await res.json().catch(() => ({}));
+        throw new Error(errorData.error || 'Server error');
       }
       
       setModalState('success');
@@ -86,9 +87,9 @@ export default function GuidesView() {
         setTimeout(() => setModalState('form'), 500); // Reset after closing
       }, 2500);
 
-    } catch (error) {
+    } catch (error: any) {
        console.error(error);
-       alert("Не удалось отправить форму. Пожалуйста, попробуйте позже.");
+       alert(error.message === 'Server error' ? "Не удалось отправить форму. Пожалуйста, попробуйте позже." : error.message);
     } finally {
        setIsSubmitting(false);
     }

@@ -131,11 +131,11 @@ export default async function handler(request: VercelRequest, response: VercelRe
                 category: data.category
             };
 
-            await redis.zadd('radar:alerts', { score: ts, member: sanitizedData });
+            await redis.set(`radar:pending:${reportId}`, JSON.stringify(sanitizedData), { ex: 604800 }); // Store for 7 days
 
             // Telegram Notification
             if (TELEGRAM_BOT_TOKEN && TELEGRAM_CHAT_ID) {
-                const messageText = `📡 <b>Радар: Новый сигнал!</b>\n\n📌 <b>Сервис:</b> ${sanitizedData.serviceName}\n🏙 <b>Город:</b> ${sanitizedData.city}\n💸 <b>Сумма:</b> ${sanitizedData.amount ? sanitizedData.amount + ' ₽' : 'Не указана'}\n🏷 <b>Категория:</b> ${getCategoryName(sanitizedData.category)}\n\n📝 <b>Сюжет:</b> ${sanitizedData.description}\n\n🌐 <b>IP:</b> ${clientIp}`;
+                const messageText = `📡 <b>Радар: Новый сигнал! (Ожидает модерации)</b>\n\n📌 <b>Сервис:</b> ${sanitizedData.serviceName}\n🏙 <b>Город:</b> ${sanitizedData.city}\n💸 <b>Сумма:</b> ${sanitizedData.amount ? sanitizedData.amount + ' ₽' : 'Не указана'}\n🏷 <b>Категория:</b> ${getCategoryName(sanitizedData.category)}\n\n📝 <b>Сюжет:</b> ${sanitizedData.description}\n\n🌐 <b>IP:</b> ${clientIp}`;
 
                 await fetch(`https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage`, {
                     method: 'POST',
@@ -144,6 +144,14 @@ export default async function handler(request: VercelRequest, response: VercelRe
                         chat_id: TELEGRAM_CHAT_ID,
                         text: messageText,
                         parse_mode: 'HTML',
+                        reply_markup: {
+                            inline_keyboard: [
+                                [
+                                    { text: "✅ Опубликовать", callback_data: `approve_radar_${reportId}` },
+                                    { text: "❌ Отклонить", callback_data: `reject_radar_${reportId}` }
+                                ]
+                            ]
+                        }
                     }),
                     signal: AbortSignal.timeout(10000),
                 }).catch(e => console.error('TG Error:', e));
